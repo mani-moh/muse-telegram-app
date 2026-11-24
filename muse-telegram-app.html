@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<link rel="icon" href="data:," />
+<title>Muse Telegram App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    color-scheme: light dark;
+    --bg:#ffffff; --bg-2:#f4f4f5; --card:#ffffff; --card-2:#f7f8fa;
+    --text:#0f0f10; --muted:#6d6d72; --faint:#9a9aa0;
+    --line:#e6e6ea; --accent:#2481cc; --accent-ink:#ffffff; --accent-soft:#e8f3fc;
+    --green:#2ea36b; --green-soft:#e6f5ec; --amber:#b7791f; --amber-soft:#fdf3e0;
+    --red:#d64545; --red-soft:#fdecec; --radius:16px;
+    --shadow:0 1px 2px rgba(16,24,40,.05),0 4px 16px rgba(16,24,40,.05);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0e0e10; --bg-2:#17171a; --card:#1c1c1f; --card-2:#232327;
+      --text:#f5f5f7; --muted:#a1a1a8; --faint:#7c7c85;
+      --line:#2c2c31; --accent:#3a9bd8; --accent-soft:#173144;
+      --green-soft:#14301f; --amber-soft:#33270f; --red-soft:#381b1b;
+      --shadow:0 1px 2px rgba(0,0,0,.4),0 4px 16px rgba(0,0,0,.3);
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  @media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto} *{transition:none!important} }
+  body{
+    margin:0; background:var(--bg-2); color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px; line-height:1.45; -webkit-font-smoothing:antialiased;
+  }
+  button,[role="button"],select,summary,input:not([type="checkbox"]){min-height:44px}
+  button{font:inherit; cursor:pointer}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:8px}
+  .wrap{max-width:640px; margin:0 auto; padding:0 16px 110px}
+
+  /* Header */
+  header.top{
+    position:sticky; top:0; z-index:20; margin:0 -16px; padding:14px 16px 10px;
+    background:color-mix(in srgb, var(--bg-2) 88%, transparent); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .hi{font-size:13px; color:var(--muted); margin:0}
+  h1{font-size:24px; line-height:1.15; letter-spacing:-.02em; margin:2px 0 8px; font-weight:750}
+  .statusrow{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+  .pill{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; padding:5px 10px; border-radius:999px; background:var(--card); border:1px solid var(--line); color:var(--muted)}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--green);flex:none}
+  .dot.blue{background:var(--accent)}
+  .pill b{color:var(--text); font-weight:650}
+
+  /* Mode banner */
+  .mode{margin:14px 0 0; padding:12px 14px; border-radius:var(--radius); background:var(--accent-soft); font-size:14px; display:none; gap:10px; align-items:flex-start}
+  .mode.show{display:flex}
+  .mode p{margin:0}
+  .mode strong{font-weight:700}
+
+  /* Ask box */
+  .ask{margin-top:16px; background:var(--card); border:1px solid var(--line); border-radius:20px; padding:14px; box-shadow:var(--shadow)}
+  .ask label{font-size:13px; font-weight:650; color:var(--muted); display:block; margin-bottom:8px}
+  .askrow{display:flex; gap:8px}
+  .ask input[type="text"]{
+    flex:1; min-width:0; border:1px solid var(--line); background:var(--card-2); color:var(--text);
+    border-radius:12px; padding:10px 12px; font:inherit; font-size:16px;
+  }
+  .ask input::placeholder{color:var(--faint)}
+  .sendbtn{
+    flex:none; border:0; border-radius:12px; padding:0 18px; background:var(--accent); color:var(--accent-ink);
+    font-weight:700; font-size:15px;
+  }
+  .chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px}
+  .chip{
+    border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:999px;
+    padding:0 12px; min-height:36px; font-size:13.5px; font-weight:550;
+  }
+
+  /* Tiles */
+  .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:16px}
+  @media (min-width:520px){ .grid{grid-template-columns:1fr 1fr 1fr} }
+  .tile{
+    text-align:left; border:1px solid var(--line); background:var(--card); border-radius:18px;
+    padding:14px; box-shadow:var(--shadow); display:flex; flex-direction:column; gap:8px; min-height:104px;
+    color:var(--text); width:100%;
+  }
+  .tile:active{transform:scale(.985)}
+  .tile .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--accent-soft);color:var(--accent)}
+  .tile .ic svg{width:22px;height:22px}
+  .tile .t{font-weight:700; font-size:15.5px; line-height:1.2}
+  .tile .d{font-size:12.5px; color:var(--muted); line-height:1.35}
+  .tile .badge{align-self:flex-start; font-size:11.5px; font-weight:700; padding:2px 8px; border-radius:999px; background:var(--green-soft); color:var(--green)}
+  .tile .badge.amber{background:var(--amber-soft); color:var(--amber)}
+  .tile .badge.grey{background:var(--card-2); color:var(--muted)}
+
+  /* Sections */
+  section{margin-top:28px; scroll-margin-top:204px}
+  .sec-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:4px}
+  h2{font-size:19px; letter-spacing:-.01em; margin:0; font-weight:750}
+  .sec-sub{color:var(--muted); font-size:14px; margin:4px 0 12px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); overflow:hidden}
+  .row{display:flex; gap:12px; align-items:center; padding:13px 14px; border-top:1px solid var(--line)}
+  .row:first-child{border-top:0}
+  .row .grow{flex:1; min-width:0}
+  .row .name{font-weight:650; font-size:15px}
+  .row .meta{font-size:13px; color:var(--muted); margin-top:1px}
+  .row .meta a{color:var(--accent)}
+  .btn{
+    flex:none; border:0; border-radius:10px; padding:0 14px; min-height:40px;
+    background:var(--accent); color:var(--accent-ink); font-weight:650; font-size:14px;
+  }
+  .btn.ghost{background:var(--card-2); color:var(--text); border:1px solid var(--line)}
+  .btn.small{min-height:38px; font-size:13.5px; padding:0 12px}
+  .tag{flex:none; font-size:12px; font-weight:700; padding:4px 9px; border-radius:999px}
+  .tag.on{background:var(--green-soft); color:var(--green)}
+  .tag.off{background:var(--card-2); color:var(--muted)}
+  .tag.lock{background:var(--red-soft); color:var(--red)}
+
+  /* Switch */
+  .switch{position:relative; flex:none; width:52px; height:32px; min-height:32px; border:0; border-radius:999px; background:var(--line); padding:0; transition:background .15s}
+  .switch::after{content:""; position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:left .15s}
+  .switch[aria-checked="true"]{background:var(--green)}
+  .switch[aria-checked="true"]::after{left:23px}
+
+  /* Segmented defaults */
+  .opts{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
+  .opt{border:1px solid var(--line); background:var(--card-2); color:var(--text); border-radius:999px; padding:0 12px; min-height:36px; font-size:13.5px; font-weight:550}
+  .opt.sel{background:var(--accent); border-color:var(--accent); color:#fff; font-weight:700}
+
+  .allspaces{
+    width:100%; display:flex; align-items:center; gap:12px; text-align:left;
+    background:var(--accent); color:var(--accent-ink); border:0; border-radius:var(--radius);
+    padding:14px 16px; margin-bottom:12px; box-shadow:var(--shadow);
+  }
+  .allspaces .as-t{font-size:17px; font-weight:750; flex:none}
+  .allspaces .as-d{font-size:13px; opacity:.85; flex:1; line-height:1.3}
+  .allspaces .as-arrow{font-size:20px; font-weight:700; flex:none}
+  .allspaces:active{transform:scale(.99)}
+  .note{font-size:13px; color:var(--muted); margin:10px 2px 0}
+  .note b{color:var(--text)}
+  .speednums{display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-bottom:12px}
+  .speednums .n{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:10px 12px}
+  .speednums .v{font-size:19px; font-weight:800; letter-spacing:-.02em}
+  .speednums .k{font-size:12px; color:var(--muted); line-height:1.3; margin-top:2px}
+
+  /* Feature directory */
+  .filter{width:100%; border:1px solid var(--line); background:var(--card); color:var(--text); border-radius:12px; padding:10px 12px; font:inherit; font-size:16px; margin-bottom:10px}
+  .feat h3{font-size:13px; text-transform:uppercase; letter-spacing:.06em; color:var(--faint); margin:16px 2px 6px; font-weight:700}
+  .feat .row{padding-top:11px; padding-bottom:11px}
+  .hidden{display:none!important}
+  .empty{padding:18px 14px; text-align:center; color:var(--muted); font-size:14px}
+
+  footer{margin-top:32px; color:var(--faint); font-size:12.5px; text-align:center; line-height:1.5}
+
+  /* Bottom nav */
+  nav.bottom{
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+    background:color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--line); padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  }
+  nav.bottom .inner{max-width:640px; margin:0 auto; display:grid; grid-template-columns:repeat(5,1fr); gap:2px}
+  nav.bottom a{
+    display:flex; flex-direction:column; align-items:center; gap:2px; padding:7px 2px; min-height:52px;
+    color:var(--muted); text-decoration:none; font-size:11px; font-weight:600; border-radius:10px;
+  }
+  nav.bottom a svg{width:22px; height:22px}
+  nav.bottom a.on{color:var(--accent)}
+
+  /* Toast */
+  .toast{
+    position:fixed; left:50%; bottom:calc(84px + env(safe-area-inset-bottom)); transform:translate(-50%,16px);
+    background:#17181c; color:#fff; padding:11px 16px; border-radius:12px; font-size:14px; font-weight:550;
+    max-width:min(92vw,480px); text-align:center; opacity:0; pointer-events:none; transition:opacity .18s, transform .18s; z-index:50;
+    box-shadow:0 8px 28px rgba(0,0,0,.3);
+  }
+  .toast.show{opacity:1; transform:translate(-50%,0)}
+  .toast button{background:none;border:0;color:#7cc4ff;font-weight:700;padding:0 0 0 8px;min-height:0;font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap" id="top">
+
+  <header class="top">
+    <p class="hi">Hi John — Muse, inside Telegram</p>
+    <h1>Muse, one tap away —<br />no commands to type</h1>
+    <div class="statusrow">
+      <span class="pill"><span class="dot"></span> Bot <b>@Manis_muse_bot</b></span>
+      <span class="pill"><span class="dot blue"></span> Checking every <b>5 sec</b></span>
+      <span class="pill" id="modePill">Opening mode: <b>Preview</b></span>
+    </div>
+  </header>
+
+  <div class="mode" id="previewBanner" role="note">
+    <p><strong>You're viewing this outside Telegram.</strong> Tiles still work as a guide — tap one and you'll get the exact command to send the bot. Open this page from the button in your Telegram chat with @Manis_muse_bot and taps send straight to Muse instead.</p>
+  </div>
+  <div class="mode" id="tgBanner" role="note">
+    <p><strong>You're inside Telegram.</strong> Tap any tile and the command goes straight to Muse — the reply lands here in this chat. No typing, no slash commands to remember.</p>
+  </div>
+
+  <!-- Ask -->
+  <div class="ask">
+    <label for="askInput">Ask Muse anything</label>
+    <div class="askrow">
+      <input type="text" id="askInput" placeholder="e.g. What's on my calendar tomorrow?" autocomplete="off" enterkeyhint="send" />
+      <button class="sendbtn" id="askSend" type="button">Send</button>
+    </div>
+    <div class="chips">
+      <button class="chip" type="button" data-cmd="/review">What's waiting for my review?</button>
+      <button class="chip" type="button" data-cmd="/spaces">Show my Spaces</button>
+      <button class="chip" type="button" data-cmd="/feed">What's new in my Feed?</button>
+      <button class="chip" type="button" data-cmd="/goals">How are my goals going?</button>
+      <button class="chip" type="button" data-cmd="/notes">Show my notes</button>
+    </div>
+  </div>
+
+  <!-- Main tiles -->
+  <div class="grid" role="list" aria-label="Main features">
+    <button class="tile" type="button" data-cmd="/review">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      <span class="t">Action Review</span><span class="d">Approvals waiting &amp; recent actions</span>
+      <span class="badge">Nothing waiting</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/spaces">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+      <span class="t">Spaces</span><span class="d">Open, create &amp; jump into a Space</span>
+      <span class="badge grey">3 Spaces</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/connectors">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg></span>
+      <span class="t">Connectors</span><span class="d">Connect Gmail, Expedia &amp; more</span>
+      <span class="badge grey">3 connected</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/defaults">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
+      <span class="t">Defaults</span><span class="d">Your go-to service for each job</span>
+      <span class="badge amber">None set yet</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/feed">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><line x1="5" y1="19" x2="5.01" y2="19"/></svg></span>
+      <span class="t">Feed</span><span class="d">Updates, results &amp; finished work</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/goals">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg></span>
+      <span class="t">Goals</span><span class="d">Progress on what you're working toward</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/ideas">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></span>
+      <span class="t">Ideas</span><span class="d">Saved ideas &amp; suggestions for you</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/library">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      <span class="t">Library</span><span class="d">Files, pages &amp; everything saved</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/notes">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></span>
+      <span class="t">Notes</span><span class="d">Your Telegram Notes — saved in the Space</span>
+      <span class="badge">New</span>
+    </button>
+    <button class="tile" type="button" data-cmd="/help">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      <span class="t">Help</span><span class="d">Every command, in plain words</span>
+    </button>
+  </div>
+
+  <!-- Review + auto-allow -->
+  <section id="review">
+    <div class="sec-head"><h2>Action review &amp; auto-allow</h2></div>
+    <p class="sec-sub">See what's waiting for you, and choose which everyday actions Muse can do without asking each time. Last checked 24 Nov 2026: nothing was waiting — the last two requests were decided and set to “always allow” for that site.</p>
+    <div class="card">
+      <div class="row">
+        <div class="grow"><div class="name">Pending approvals</div><div class="meta">Purchases, sends, deletions and new permissions land here first.</div></div>
+        <button class="btn" type="button" data-cmd="/review">Check now</button>
+      </div>
+      <div class="row">
+        <div class="grow"><div class="name">Web search &amp; reading pages</div><div class="meta">Not set yet. What's actually on record: your last two requests were decided with “always allow” for that one site — not for the web in general. Flip this to ask Muse to widen it.</div></div>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Request always allow for web search and reading pages" data-setting="autoallow:web:on"></button>
+      </div>
+      <div class="row">
+        <div class="grow"><div class="name">Read calendar &amp; email</div><div class="meta">Checking your schedule and inbox to answer questions — never sending.</div></div>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Always allow reading calendar and email" data-setting="autoallow:read:on"></button>
+      </div>
+      <div class="row">
+        <div class="grow"><div class="name">Simple Telegram commands</div><div class="meta">Not on yet — see Reply speed below. Flip this to ask Muse to set up straight-from-the-bot answers for /spaces, /review and /help.</div></div>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Request fast local replies for simple commands" data-setting="fastlocal:on"></button>
+      </div>
+      <div class="row">
+        <div class="grow"><div class="name">Buying, paying, sending &amp; deleting</div><div class="meta">These always need your tap on the approval card — there's no blanket auto-accept for them, so nothing can spend or send in your name while you're away.</div></div>
+        <span class="tag lock">Always asks</span>
+      </div>
+    </div>
+    <p class="note">Flipping a switch here sends the request to Muse in the chat — a setting counts as on only once Muse confirms it there. <b>If you might not have the Muse app handy:</b> pre-allow the read-only rows above now, and anything that truly can't wait can still be flagged to you here in Telegram via /review.</p>
+  </section>
+
+  <!-- Spaces -->
+  <section id="spaces">
+    <div class="sec-head"><h2>Your Spaces</h2>
+      <button class="btn small ghost" type="button" data-cmd="/newspace">+ New Space</button>
+    </div>
+    <p class="sec-sub">The tiles below are the Spaces that exist now. The list itself is live through the bot — tap <b>All Spaces</b> and Muse replies in the chat with every Space you have, including any created after this screen was built. No rebuilding needed.</p>
+    <button class="allspaces" type="button" data-cmd="/spaces">
+      <span class="as-t">All Spaces</span>
+      <span class="as-d">Send /spaces to the bot — your full, live list</span>
+      <span class="as-arrow" aria-hidden="true">→</span>
+    </button>
+    <div class="card">
+      <div class="row">
+        <div class="grow">
+          <div class="name">Muse Telegram App</div>
+          <div class="meta">This screen — a static Space, built to live inside Telegram as a Mini App.</div>
+        </div>
+        <span class="tag on">You're here</span>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <div class="name">Telegram Hub</div>
+          <div class="meta">Your demo Space for running Muse from Telegram — commands, review and connectors. Static.</div>
+        </div>
+        <button class="btn" type="button" data-cmd="/space telegram-hub">Open</button>
+      </div>
+      <div class="row">
+        <div class="grow">
+          <div class="name">Telegram Notes</div>
+          <div class="meta">A fullstack Space, so it has no public link and isn't shared. You use it from Telegram instead: the bot runs its actions and replies in chat. Its quick controls are in the <a href="#notes">Telegram Notes section</a> below.</div>
+        </div>
+        <button class="btn" type="button" data-cmd="/notes">My notes</button>
+      </div>
+    </div>
+    <p class="note">No Space here carries an invented web address. A static Space only gets a tappable in-Telegram link after you approve sharing that specific Space — sharing makes it public to anyone with the link, so Muse will always check with you first. Telegram Notes stays private: it is never shared, and its notes are reached only through the bot.</p>
+  </section>
+
+  <!-- Telegram Notes -->
+  <section id="notes">
+    <div class="sec-head"><h2>Telegram Notes</h2>
+      <button class="btn small ghost" type="button" data-cmd="/help">Notes help</button>
+    </div>
+    <p class="sec-sub">Notes live in the <b>Telegram Notes</b> Space (fullstack, slug <b>telegram-notes</b>) — that's where they're saved. This screen can't save anything itself, so every tap below sends the matching command to the bot, the bot runs the Space's action, and the result comes back in this chat.</p>
+
+    <div class="ask" style="margin-top:0">
+      <label for="noteInput">Add a note — sends /note</label>
+      <div class="askrow">
+        <input type="text" id="noteInput" placeholder="e.g. Book the dentist on Friday" autocomplete="off" enterkeyhint="send" />
+        <button class="sendbtn" id="noteAdd" type="button">Add</button>
+      </div>
+      <div class="chips">
+        <button class="chip" type="button" data-cmd="/notes">List my notes · /notes</button>
+        <button class="chip" type="button" data-cmd="/help">Notes help · /help</button>
+      </div>
+    </div>
+
+    <div class="ask">
+      <label for="noteSearchInput">Search your notes — sends /search</label>
+      <div class="askrow">
+        <input type="text" id="noteSearchInput" placeholder="Word or phrase to look for" autocomplete="off" enterkeyhint="search" />
+        <button class="sendbtn" id="noteSearch" type="button">Search</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px">
+      <div class="row">
+        <div class="grow">
+          <div class="name">Act on a note by its number</div>
+          <div class="meta">Type the note's number (from /notes), then tap an action. Delete is permanent for that note.</div>
+          <div class="askrow" style="margin-top:10px">
+            <input type="text" id="noteIdInput" inputmode="numeric" placeholder="Note #" autocomplete="off" aria-label="Note number" style="flex:0 0 110px; border:1px solid var(--line); background:var(--card-2); color:var(--text); border-radius:12px; padding:10px 12px; font:inherit; font-size:16px" />
+          </div>
+          <div class="chips" style="margin-top:10px">
+            <button class="chip" type="button" data-note-action="/pin">Pin · /pin</button>
+            <button class="chip" type="button" data-note-action="/unpin">Unpin · /unpin</button>
+            <button class="chip" type="button" data-note-action="/done">Done · /done</button>
+            <button class="chip" type="button" data-note-action="/reopen">Reopen · /reopen</button>
+            <button class="chip" type="button" data-note-action="/delete">Delete · /delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div class="row"><div class="grow"><div class="name">/note &lt;text&gt;</div><div class="meta">Save a new note — the reply confirms its number.</div></div></div>
+      <div class="row"><div class="grow"><div class="name">/notes</div><div class="meta">List your notes, newest state first.</div></div></div>
+      <div class="row"><div class="grow"><div class="name">/search &lt;text&gt;</div><div class="meta">Find notes containing that word or phrase.</div></div></div>
+      <div class="row"><div class="grow"><div class="name">/pin &lt;id&gt; · /unpin &lt;id&gt;</div><div class="meta">Pin a note to the top, or unpin it.</div></div></div>
+      <div class="row"><div class="grow"><div class="name">/done &lt;id&gt; · /reopen &lt;id&gt;</div><div class="meta">Mark a note done, or reopen it.</div></div></div>
+      <div class="row"><div class="grow"><div class="name">/delete &lt;id&gt;</div><div class="meta">Delete one note for good.</div></div></div>
+      <div class="row"><div class="grow"><div class="name">/help</div><div class="meta">The Notes help text, straight from the Space.</div></div></div>
+    </div>
+    <p class="note">You can also just type any of these commands in the chat — the buttons and the typed commands do exactly the same thing.</p>
+  </section>
+
+  <!-- Speed -->
+  <section id="speed">
+    <div class="sec-head"><h2>Reply speed</h2></div>
+    <p class="sec-sub">Where the wait actually is — measured, not guessed, on 24 Nov 2026.</p>
+    <div class="speednums">
+      <div class="n"><div class="v">~0.5s</div><div class="k">Telegram delivering your message (webhook test)</div></div>
+      <div class="n"><div class="v">5s</div><div class="k">Current check interval — the fastest polling allowed</div></div>
+      <div class="n"><div class="v">10–20s</div><div class="k">Muse waking, reading &amp; replying — the real bottleneck</div></div>
+    </div>
+    <div class="card">
+      <div class="row">
+        <div class="grow"><div class="name">Keep the 5-second check</div><div class="meta">Your current setup, with a 15-minute backup check. Reliable, no public link needed.</div></div>
+        <span class="tag on">On</span>
+      </div>
+      <div class="row">
+        <div class="grow"><div class="name">Fast answers for simple commands — not on yet</div><div class="meta">The one real shortcut available: /spaces, /review, /defaults and /help could be answered by the bot from saved answers, skipping the 10–20s wake-up. It isn't set up yet — flip this to ask Muse to set it up. Until then, every command waits for the 5-second check plus the wake-up. Full questions would still wake Muse.</div></div>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-label="Request fast answers for simple commands" data-setting="fastlocal:on"></button>
+      </div>
+      <div class="row">
+        <div class="grow"><div class="name">Webhook push instead of polling</div><div class="meta">Tested: saves only ~2–3s of detection, needs a public tunnel that must stay running, and Telegram drops queued messages if it dies. Not recommended.</div></div>
+        <button class="btn small ghost" type="button" data-cmd="webhook:status">Details</button>
+      </div>
+    </div>
+    <p class="note">Honest bottom line: no route makes a full Muse reply truly instant, because the thinking itself takes the time. The fast-command switch above is the one change that could cut the wait for the commands you use most — it isn't on yet, and turning it on here sends the request to Muse in the chat to set up.</p>
+  </section>
+
+  <!-- Connectors -->
+  <section id="connectors">
+    <div class="sec-head"><h2>Connectors</h2>
+      <button class="btn small ghost" type="button" data-cmd="/connectors">See all</button>
+    </div>
+    <p class="sec-sub">Services Muse can use for you. Status as of 24 Nov 2026.</p>
+    <div class="card">
+      <div class="row"><div class="grow"><div class="name">Telegram</div><div class="meta">@Manis_muse_bot — this chat, checking every 5 seconds.</div></div><span class="tag on">Connected</span></div>
+      <div class="row"><div class="grow"><div class="name">WhatsApp</div><div class="meta">Linked 24 Nov 2026 — message Muse there too.</div></div><span class="tag on">Connected</span></div>
+      <div class="row"><div class="grow"><div class="name">Meta Ads</div><div class="meta">Facebook &amp; Instagram ad accounts.</div></div><span class="tag on">Connected</span></div>
+      <div class="row"><div class="grow"><div class="name">Gmail</div><div class="meta">Read, search and draft email.</div></div><button class="btn small" type="button" data-cmd="/connect gmail">Connect</button></div>
+      <div class="row"><div class="grow"><div class="name">Google Calendar</div><div class="meta">Your schedule, events and free time.</div></div><button class="btn small" type="button" data-cmd="/connect google-calendar">Connect</button></div>
+      <div class="row"><div class="grow"><div class="name">Expedia</div><div class="meta">Hotels and stays.</div></div><button class="btn small" type="button" data-cmd="/connect expedia">Connect</button></div>
+      <div class="row"><div class="grow"><div class="name">Duffel</div><div class="meta">Flights and rental cars.</div></div><button class="btn small" type="button" data-cmd="/connect duffel">Connect</button></div>
+      <div class="row"><div class="grow"><div class="name">Instacart</div><div class="meta">Groceries for delivery or pickup.</div></div><button class="btn small" type="button" data-cmd="/connect instacart">Connect</button></div>
+      <div class="row"><div class="grow"><div class="name">Spotify</div><div class="meta">Music, playlists and playback.</div></div><button class="btn small" type="button" data-cmd="/connect spotify">Connect</button></div>
+    </div>
+    <p class="note">Tapping <b>Connect</b> sends the request to Muse in the chat, which walks you through that service's secure sign-in — your password is never typed into Telegram.</p>
+  </section>
+
+  <!-- Defaults -->
+  <section id="defaults">
+    <div class="sec-head"><h2>Default connectors</h2></div>
+    <p class="sec-sub">Pick the service Muse should reach for first for each kind of job. Tap to set — it applies in the Muse app too, not just here. None were set as of 24 Nov 2026.</p>
+    <div class="card" id="defaultsCard">
+      <div class="row"><div class="grow"><div class="name">Hotels &amp; stays</div>
+        <div class="opts" data-group="hotels">
+          <button class="opt" type="button" data-cmd="/default hotels expedia">Expedia</button>
+        </div></div></div>
+      <div class="row"><div class="grow"><div class="name">Flights</div>
+        <div class="opts" data-group="flights">
+          <button class="opt" type="button" data-cmd="/default flights duffel">Duffel</button>
+          <button class="opt" type="button" data-cmd="/default flights google-flights">Google Flights</button>
+        </div></div></div>
+      <div class="row"><div class="grow"><div class="name">Groceries</div>
+        <div class="opts" data-group="groceries">
+          <button class="opt" type="button" data-cmd="/default groceries instacart">Instacart</button>
+        </div></div></div>
+      <div class="row"><div class="grow"><div class="name">Music</div>
+        <div class="opts" data-group="music">
+          <button class="opt" type="button" data-cmd="/default music spotify">Spotify</button>
+        </div></div></div>
+      <div class="row"><div class="grow"><div class="name">Messages</div>
+        <div class="opts" data-group="messages">
+          <button class="opt" type="button" data-cmd="/default messages telegram">Telegram</button>
+          <button class="opt" type="button" data-cmd="/default messages whatsapp">WhatsApp</button>
+        </div></div></div>
+    </div>
+  </section>
+
+  <!-- Full directory -->
+  <section id="all">
+    <div class="sec-head"><h2>Everything else Muse does</h2></div>
+    <p class="sec-sub">How this screen works, plainly: it's Muse's front door inside Telegram, not the Muse app itself. Every row sends its command to the bot and Muse does the work and replies in the chat — so anything Muse can do in the app can be started from here, and a few things (like approving a purchase) still finish on the approval card in the app.</p>
+    <input class="filter" id="filterInput" type="search" placeholder="Filter — try “flight”, “email”, “photo”…" aria-label="Filter features" />
+    <div class="feat" id="featList">
+      <h3>Plan &amp; book</h3>
+      <div class="card">
+        <div class="row" data-keys="flight fly plane trip"><div class="grow"><div class="name">Flights</div><div class="meta">Search, compare and book; track a flight live.</div></div><button class="btn small ghost" type="button" data-cmd="ask:flights">Ask</button></div>
+        <div class="row" data-keys="hotel stay room travel"><div class="grow"><div class="name">Hotels &amp; stays</div><div class="meta">Compare full-stay prices and book.</div></div><button class="btn small ghost" type="button" data-cmd="ask:hotels">Ask</button></div>
+        <div class="row" data-keys="trip itinerary travel holiday"><div class="grow"><div class="name">Trip planning</div><div class="meta">One itinerary: flights, stays, transport, food.</div></div><button class="btn small ghost" type="button" data-cmd="ask:trip">Ask</button></div>
+        <div class="row" data-keys="restaurant table dinner reservation"><div class="grow"><div class="name">Restaurants</div><div class="meta">Find a real table and book it.</div></div><button class="btn small ghost" type="button" data-cmd="ask:restaurants">Ask</button></div>
+        <div class="row" data-keys="ticket event concert show seats"><div class="grow"><div class="name">Event tickets</div><div class="meta">Find events, compare seats and totals.</div></div><button class="btn small ghost" type="button" data-cmd="ask:tickets">Ask</button></div>
+        <div class="row" data-keys="car train ferry bus transport rental"><div class="grow"><div class="name">Getting around</div><div class="meta">Rental cars, trains, ferries, rides.</div></div><button class="btn small ghost" type="button" data-cmd="ask:transport">Ask</button></div>
+      </div>
+      <h3>Everyday life</h3>
+      <div class="card">
+        <div class="row" data-keys="groceries shopping list food delivery takeout"><div class="grow"><div class="name">Groceries &amp; food</div><div class="meta">Build a cart at your store; order takeout.</div></div><button class="btn small ghost" type="button" data-cmd="ask:groceries">Ask</button></div>
+        <div class="row" data-keys="shop buy product price gift compare"><div class="grow"><div class="name">Shopping</div><div class="meta">Find, compare and buy products; save favourites.</div></div><button class="btn small ghost" type="button" data-cmd="ask:shopping">Ask</button></div>
+        <div class="row" data-keys="places near cafe park restaurant shop find"><div class="grow"><div class="name">Places near you</div><div class="meta">Restaurants, cafés, shops and sights, with hours.</div></div><button class="btn small ghost" type="button" data-cmd="ask:places">Ask</button></div>
+        <div class="row" data-keys="money budget spending bank debt finance"><div class="grow"><div class="name">Money</div><div class="meta">Budgets, spending, balances and bills.</div></div><button class="btn small ghost" type="button" data-cmd="ask:money">Ask</button></div>
+        <div class="row" data-keys="health fitness sleep workout activity"><div class="grow"><div class="name">Health &amp; fitness</div><div class="meta">Activity, sleep and recovery against your goals.</div></div><button class="btn small ghost" type="button" data-cmd="ask:health">Ask</button></div>
+        <div class="row" data-keys="home smart lights camera devices"><div class="grow"><div class="name">Smart home</div><div class="meta">Control devices and check camera events.</div></div><button class="btn small ghost" type="button" data-cmd="ask:home">Ask</button></div>
+      </div>
+      <h3>Communicate &amp; organise</h3>
+      <div class="card">
+        <div class="row" data-keys="email inbox gmail message draft send"><div class="grow"><div class="name">Email</div><div class="meta">Search, triage, draft and send.</div></div><button class="btn small ghost" type="button" data-cmd="ask:email">Ask</button></div>
+        <div class="row" data-keys="calendar schedule meeting appointment invite"><div class="grow"><div class="name">Calendar &amp; scheduling</div><div class="meta">Find times, book, reschedule, invite.</div></div><button class="btn small ghost" type="button" data-cmd="ask:calendar">Ask</button></div>
+        <div class="row" data-keys="message whatsapp messenger telegram chat send"><div class="grow"><div class="name">Messaging</div><div class="meta">Message people on WhatsApp, Messenger, Telegram.</div></div><button class="btn small ghost" type="button" data-cmd="ask:messaging">Ask</button></div>
+        <div class="row" data-keys="meeting notes transcript follow up actions"><div class="grow"><div class="name">Meeting follow-up</div><div class="meta">Notes into decisions, actions and recaps.</div></div><button class="btn small ghost" type="button" data-cmd="ask:meetings">Ask</button></div>
+        <div class="row" data-keys="notes notion docs drive files organise knowledge"><div class="grow"><div class="name">Notes &amp; files</div><div class="meta">Find and organise Docs, Drive and notes.</div></div><button class="btn small ghost" type="button" data-cmd="ask:notes">Ask</button></div>
+        <div class="row" data-keys="photo photos pictures library gallery"><div class="grow"><div class="name">Photos</div><div class="meta">Search your photo library.</div></div><button class="btn small ghost" type="button" data-cmd="ask:photos">Ask</button></div>
+      </div>
+      <h3>Create</h3>
+      <div class="card">
+        <div class="row" data-keys="document pdf spreadsheet presentation write doc"><div class="grow"><div class="name">Documents</div><div class="meta">Write and revise docs, PDFs, sheets, slides.</div></div><button class="btn small ghost" type="button" data-cmd="ask:documents">Ask</button></div>
+        <div class="row" data-keys="music song playlist spotify play"><div class="grow"><div class="name">Music</div><div class="meta">Find tracks, build playlists, play.</div></div><button class="btn small ghost" type="button" data-cmd="ask:music">Ask</button></div>
+        <div class="row" data-keys="podcast audio narration voice episode"><div class="grow"><div class="name">Podcasts &amp; audio</div><div class="meta">Research, script and produce an episode.</div></div><button class="btn small ghost" type="button" data-cmd="ask:podcast">Ask</button></div>
+        <div class="row" data-keys="image picture draw generate edit photo"><div class="grow"><div class="name">Images</div><div class="meta">Create or edit pictures and product shots.</div></div><button class="btn small ghost" type="button" data-cmd="ask:images">Ask</button></div>
+        <div class="row" data-keys="social post instagram facebook threads publish"><div class="grow"><div class="name">Social posts</div><div class="meta">Publish and schedule on your accounts.</div></div><button class="btn small ghost" type="button" data-cmd="ask:social">Ask</button></div>
+        <div class="row" data-keys="transcribe audio video recording transcript"><div class="grow"><div class="name">Transcription</div><div class="meta">Turn recordings into text.</div></div><button class="btn small ghost" type="button" data-cmd="ask:transcribe">Ask</button></div>
+        <div class="row" data-keys="translate language"><div class="grow"><div class="name">Translation</div><div class="meta">Translate text and messages.</div></div><button class="btn small ghost" type="button" data-cmd="ask:translate">Ask</button></div>
+      </div>
+      <div class="empty hidden" id="featEmpty">Nothing matches that — try a shorter word, or just ask Muse in the box at the top.</div>
+    </div>
+  </section>
+
+  <footer>
+    Muse on Telegram · Bot @Manis_muse_bot · Checking every 5 seconds with a 15-minute backup<br />
+    Statuses on this screen were last checked 24 Nov 2026 — tap any tile and Muse confirms the live answer in chat.
+  </footer>
+</div>
+
+<nav class="bottom" aria-label="Sections">
+  <div class="inner">
+    <a href="#top" class="on" data-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>Home</a>
+    <a href="#review" data-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Review</a>
+    <a href="#spaces" data-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Spaces</a>
+    <a href="#connectors" data-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="M15 7h2a5 5 0 1 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>Connect</a>
+    <a href="#all" data-nav><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>All</a>
+  </div>
+</nav>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  "use strict";
+  var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+  var inTelegram = !!(tg && tg.initData);
+  var toastEl = document.getElementById('toast');
+  var toastTimer = null;
+  var lastCmd = "";
+
+  function haptic(){
+    try{ if(tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light'); }catch(e){}
+  }
+  function showToast(html, ms){
+    toastEl.innerHTML = html;
+    toastEl.classList.add('show');
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ toastEl.classList.remove('show'); }, ms || 3400);
+  }
+  function copyText(text, done){
+    function fallback(){
+      var ta = document.createElement('textarea');
+      ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      try{ document.execCommand('copy'); }catch(e){}
+      document.body.removeChild(ta);
+      if(done) done();
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ if(done) done(); }, fallback);
+    } else { fallback(); }
+  }
+
+  // Core: send a command to Muse via the bot, or explain how outside Telegram.
+  function sendCommand(cmd, label){
+    lastCmd = cmd;
+    haptic();
+    if(inTelegram){
+      try{
+        tg.sendData(cmd);
+        showToast('Sent to Muse: <b>' + escapeHtml(label || cmd) + '</b> — the reply lands in this chat.');
+        return;
+      }catch(e){ /* fall through to copy mode */ }
+    }
+    copyText(cmd, function(){
+      showToast('Copied <b>' + escapeHtml(cmd) + '</b> — paste it into your chat with @Manis_muse_bot to run it.');
+    });
+  }
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+
+  // Telegram setup
+  if(tg){
+    try{
+      tg.ready();
+      tg.expand();
+      if(tg.setHeaderColor) tg.setHeaderColor('secondary_bg_color');
+      if(tg.setBackgroundColor) tg.setBackgroundColor('secondary_bg_color');
+    }catch(e){}
+    // Adopt Telegram theme colours when provided
+    var tp = tg.themeParams || {};
+    var root = document.documentElement.style;
+    if(tp.secondary_bg_color) root.setProperty('--bg-2', tp.secondary_bg_color);
+    if(tp.bg_color) root.setProperty('--card', tp.bg_color);
+    if(tp.text_color) root.setProperty('--text', tp.text_color);
+    if(tp.hint_color) root.setProperty('--muted', tp.hint_color);
+    if(tp.button_color){ root.setProperty('--accent', tp.button_color); }
+    if(tp.button_text_color) root.setProperty('--accent-ink', tp.button_text_color);
+  }
+  document.getElementById(inTelegram ? 'tgBanner' : 'previewBanner').classList.add('show');
+  document.getElementById('modePill').innerHTML = inTelegram
+    ? 'Opened in: <b>Telegram</b>'
+    : 'Opening mode: <b>Preview</b>';
+
+  // All command buttons
+  document.addEventListener('click', function(ev){
+    var el = ev.target.closest('[data-cmd]');
+    if(el && !el.classList.contains('opt')){
+      var label = (el.querySelector('.t') || el.querySelector('.as-t') || el).textContent.trim();
+      sendCommand(el.getAttribute('data-cmd'), label);
+    }
+  });
+
+  // Ask box
+  var askInput = document.getElementById('askInput');
+  function doAsk(){
+    var q = askInput.value.trim();
+    if(!q){ showToast('Type a question first — anything you would ask Muse.'); askInput.focus(); return; }
+    sendCommand('ask:' + q, q);
+    askInput.value = '';
+  }
+  document.getElementById('askSend').addEventListener('click', doAsk);
+  askInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); doAsk(); } });
+
+  // Telegram Notes: add a note (/note <text>)
+  var noteInput = document.getElementById('noteInput');
+  function doNote(){
+    var t = noteInput.value.trim();
+    if(!t){ showToast('Type the note first, then tap Add.'); noteInput.focus(); return; }
+    sendCommand('/note ' + t, '/note ' + t);
+    noteInput.value = '';
+  }
+  document.getElementById('noteAdd').addEventListener('click', doNote);
+  noteInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); doNote(); } });
+
+  // Telegram Notes: search (/search <text>)
+  var noteSearchInput = document.getElementById('noteSearchInput');
+  function doNoteSearch(){
+    var t = noteSearchInput.value.trim();
+    if(!t){ showToast('Type a word or phrase to search for.'); noteSearchInput.focus(); return; }
+    sendCommand('/search ' + t, '/search ' + t);
+    noteSearchInput.value = '';
+  }
+  document.getElementById('noteSearch').addEventListener('click', doNoteSearch);
+  noteSearchInput.addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); doNoteSearch(); } });
+
+  // Telegram Notes: act on a note by number (/pin, /unpin, /done, /reopen, /delete)
+  var noteIdInput = document.getElementById('noteIdInput');
+  document.addEventListener('click', function(ev){
+    var el = ev.target.closest('[data-note-action]');
+    if(!el) return;
+    var id = noteIdInput.value.trim();
+    if(!id){ showToast('Type the note number first — run /notes to see the numbers.'); noteIdInput.focus(); return; }
+    var cmd = el.getAttribute('data-note-action') + ' ' + id;
+    sendCommand(cmd, cmd);
+  });
+
+  // Switches: flip, then tell Muse
+  var switches = document.querySelectorAll('.switch');
+  Array.prototype.forEach.call(switches, function(sw){
+    sw.addEventListener('click', function(){
+      var on = sw.getAttribute('aria-checked') !== 'true';
+      sw.setAttribute('aria-checked', on ? 'true' : 'false');
+      var base = (sw.getAttribute('data-setting') || '').replace(/:(on|off)$/, '');
+      sendCommand(base + ':' + (on ? 'on' : 'off'), sw.getAttribute('aria-label'));
+    });
+  });
+
+  // Defaults: single-select per group
+  var optGroups = document.querySelectorAll('.opts');
+  Array.prototype.forEach.call(optGroups, function(group){
+    group.addEventListener('click', function(ev){
+      var btn = ev.target.closest('.opt');
+      if(!btn) return;
+      Array.prototype.forEach.call(group.querySelectorAll('.opt'), function(o){ o.classList.remove('sel'); });
+      btn.classList.add('sel');
+      sendCommand(btn.getAttribute('data-cmd'), btn.textContent.trim());
+    });
+  });
+
+  // Feature filter
+  var filter = document.getElementById('filterInput');
+  var featList = document.getElementById('featList');
+  filter.addEventListener('input', function(){
+    var q = filter.value.trim().toLowerCase();
+    var anyVisible = false;
+    Array.prototype.forEach.call(featList.querySelectorAll('.row[data-keys]'), function(row){
+      var hay = (row.getAttribute('data-keys') + ' ' + row.textContent).toLowerCase();
+      var show = !q || hay.indexOf(q) !== -1;
+      row.classList.toggle('hidden', !show);
+      if(show) anyVisible = true;
+    });
+    Array.prototype.forEach.call(featList.querySelectorAll('h3'), function(h){
+      var card = h.nextElementSibling;
+      var vis = card && card.querySelectorAll('.row:not(.hidden)').length > 0;
+      h.classList.toggle('hidden', !vis);
+      if(card) card.classList.toggle('hidden', !vis);
+    });
+    document.getElementById('featEmpty').classList.toggle('hidden', anyVisible);
+  });
+
+  // Bottom nav active state
+  var navLinks = document.querySelectorAll('[data-nav]');
+  navLinks.forEach(function(a){
+    a.addEventListener('click', function(){
+      navLinks.forEach(function(x){ x.classList.remove('on'); });
+      a.classList.add('on');
+    });
+  });
+})();
+</script>
+</body>
+</html>
