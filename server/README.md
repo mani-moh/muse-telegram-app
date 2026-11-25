@@ -158,8 +158,9 @@ The hosted gap from v4.2 is now half-closed — see
 
 ## Files
 
-- `server.py` — the whole backend (stdlib only). v4.18.0: 14 Tier 1
-  cached commands; `/api/cache` also returns `notes`, `tasks`,
+- `server.py` — the whole backend (stdlib only). v4.19.1: 14 Tier 1
+  cached commands (only VERSION bumped from 4.19.0 for the
+  "Open in Muse" button move — no backend behaviour change); `/api/cache` also returns `notes`, `tasks`,
   `tracked`, `recent_decided_approvals`, `wallet`; `GET /api/queue`
   diagnostic (v4.3); replies reverse-sync poller
   (`REPLIES_SYNC_URL`, default 15 s, per-line HMAC) + `replies_sync`

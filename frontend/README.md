@@ -79,6 +79,49 @@ Research + inventory done before the pause (kept, still accurate):
    `~/workspace/custom-connectors/custom.telegram/README.md`
    (parity matrix, changelog, speed honesty, safeguards).
 
+## v4.19.1 (2026-11-25 ~13:00 +0330)
+
+- **"Open in Muse" button out of the chat, into Settings** (John:
+  "Remove the open in mus anoyying button and put it in settings.
+  Its block the vision."): the filled button sat in the chat's tier
+  bar (boot + after every live question) and blocked the view. The
+  boot tier bar now carries the latency text only, and
+  `tier2Buttons()` renders only the tap-gated "Send via Telegram bot
+  instead" ghost button. The waiting/timeout notice points at
+  Settings instead. The button lives ONLY in Settings now (the row
+  already existed); the drawer Channels row stays — it is hidden
+  until the drawer opens and doesn't block the chat. Avatar-panel
+  approval buttons and Soul/Memory rows still open Muse (panels,
+  not the chat).
+- Probes: `../screenshots/test_v4191.py` 11/11 (first run green);
+  test_v47.py probes 3–4 updated to the new behaviour; all older
+  suites green on 4.19.1 (317 probes total). New screenshots:
+  73-main-chat-no-button, 74-tier2-waiting-no-button,
+  75-settings-open-muse, 76-settings-open-muse-row (all viewed).
+
+## v4.19 (2026-11-25 ~05:25 +0330)
+
+- **Idea titles come from the cache note, not a hardcoded list:**
+  the titles were hardcoded in three places (server IDEA_TITLES,
+  app.js Ideas render, app.js search index) while the cache note
+  already carries them in prose ("Saved ideas exist, e.g.
+  idea_<32 hex> <title>, …"). Both halves now parse titles out of
+  the note at render time (server `parse_idea_titles()` /
+  frontend `parseIdeaTitles()`, same regex, kept in sync); the
+  known map is only the fallback for ids the note does not name.
+  A newly saved idea whose title lands in the note shows up with
+  no code change — proven with a synthetic third idea on a
+  throwaway server copy (appears in /ideas, the Ideas view, and
+  search). An id with no title anywhere gets no invented title:
+  /ideas and the Ideas view say so honestly. Source guards forbid
+  a second title list outside the fallback maps.
+- Probes: `../screenshots/test_v419.py` 18/18 (first run 17/18 —
+  two probe bugs: Search is not a tab-bar tab, and the
+  untitled-line guard matched a literal apostrophe against the
+  source's escaped one); all older suites green on 4.19.0 (see
+  project README). New screenshot: 72-ideas-search (search
+  "defaults" — the saved-idea hit from the parsed map).
+
 ## v4.18 (2026-11-25 ~04:37 +0330)
 
 - **Calendar view (new):** Calendar was the only parity-matrix

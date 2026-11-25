@@ -1,4 +1,4 @@
-/* Muse Telegram App v4.18 — frontend.
+/* Muse Telegram App v4.19.1 — frontend.
    Chat-first. Frontend -> backend (/api/message, /api/events SSE).
    Two-tier latency, honest in the UI:
      Tier 1 — cached commands answered by the backend in ~1s, labelled
@@ -10,8 +10,10 @@
        (v4.4 backend poller + v4.5 end-to-end proof + live-test plan),
        otherwise in the BOT CHAT after the Muse wake (~10-20s).
        The app says so plainly and never pretends a Tier 2 reply is instant.
-   Escape hatch: "Open in Muse — instant, live chat" copies the message
-   to the clipboard first, then tg.openLink("https://muse.ai").
+   Escape hatch: "Open in Muse — instant, live chat" lives ONLY in
+   Settings (v4.19.1: the filled button in the chat's tier bar blocked
+   the view, so it was removed from the chat entirely). It copies the
+   message to the clipboard first, then tg.openLink("https://muse.ai").
    tg.sendData is used ONLY by the explicit, tap-gated
    "Send via Telegram bot instead (slow, ~10-20s)" button.
    No hard-coded Space names, counts, or statuses: every value shown
@@ -163,6 +165,38 @@
     return out;
   }
   function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+
+  /* v4.19: idea titles come from the cache note, not a hardcoded
+     list. The cache stores only idea ids in "saved", but the
+     worker-written "note" carries the titles in prose ("Saved ideas
+     exist, e.g. idea_<32 hex> <title>, idea_<32 hex> <title>.").
+     Titles contain no commas in that format, so each title runs to
+     the next ", idea_" or the end; a trailing full stop is prose
+     punctuation, not part of the title. KNOWN_IDEA_TITLES is only
+     the fallback for ids the note does not name — never invent a
+     title for an id listed in neither. Same parse as the server's
+     parse_idea_titles() — keep them in sync. Render time only;
+     the snapshot itself is never edited. */
+  var KNOWN_IDEA_TITLES = {
+    "idea_299b6569f1234467bd006eb25a6ad059": "Set your defaults from Telegram",
+    "idea_18894899f1ff4b2ca60528696dfc7654": "Host your Telegram app on your AWS credits"
+  };
+  function parseIdeaTitles(note) {
+    var out = {};
+    var re = /idea_([0-9a-f]{32})\s+([^,]+)/g, m;
+    while ((m = re.exec(String(note || "")))) {
+      var t = m[2].trim().replace(/\.+$/, "").trim();
+      if (t) out["idea_" + m[1]] = t;
+    }
+    return out;
+  }
+  function ideaTitlesMap() {
+    var titles = {};
+    Object.keys(KNOWN_IDEA_TITLES).forEach(function (k) { titles[k] = KNOWN_IDEA_TITLES[k]; });
+    var parsed = parseIdeaTitles((cacheData.ideas && cacheData.ideas.note) || "");
+    Object.keys(parsed).forEach(function (k) { titles[k] = parsed[k]; });
+    return titles;
+  }
 
   /* v4.11: one line-SVG icon set (same stroke style as the v4.9
      tab bar). Every row icon in the app uses these now — the v4.10
@@ -457,21 +491,24 @@
         ? '<p class="sub">Showing ' + titles.length + ' of ' + total + ' units in your Feed — the rest need a fresh check. “Check the Feed” below runs /feed (cached, ~1s).</p>'
         : "";
     })() : '<p class="empty">Your Feed is empty.</p>';
-    // Ideas — only the two verified saved ideas, by title from cache note ids? Titles are NOT in cache.json;
-    // the cache only stores idea ids, so show the ids' known titles ONLY as recorded in TELEGRAM_COMMANDS.md.
-    var ideaTitles = [
-      { id: "idea_299b6569f1234467bd006eb25a6ad059", title: "Set your defaults from Telegram" },
-      { id: "idea_18894899f1ff4b2ca60528696dfc7654", title: "Host your Telegram app on your AWS credits" }
-    ];
+    // Ideas — titles parsed from the ideas cache note (v4.19), with
+    // the known-titles fallback for ids the note does not name. A
+    // saved id with no title anywhere shows no invented title — the
+    // honest count line below says so instead.
     var saved = (cacheData.ideas && cacheData.ideas.saved) || [];
-    $("ideasCache").textContent = cacheLabel();
-    var visibleIdeas = ideaTitles.filter(function (i) { return saved.indexOf(i.id) !== -1 && dismissedIdeas.indexOf(i.id) === -1; });
-    var hiddenCount = ideaTitles.filter(function (i) { return saved.indexOf(i.id) !== -1 && dismissedIdeas.indexOf(i.id) !== -1; }).length;
+    var ideaTitlesMapAll = ideaTitlesMap();
+    var ideaTitles = saved.map(function (id) {
+      return { id: id, title: ideaTitlesMapAll[id] || null };
+    }).filter(function (i) { return i.title; });
+    var untitledCount = saved.length - ideaTitles.length;
+    var visibleIdeas = ideaTitles.filter(function (i) { return dismissedIdeas.indexOf(i.id) === -1; });
+    var hiddenCount = ideaTitles.filter(function (i) { return dismissedIdeas.indexOf(i.id) !== -1; }).length;
     $("ideasList").innerHTML = (visibleIdeas.length ? visibleIdeas.map(function (i) {
       return '<div class="row"><span class="icon">' + ICON.bulb + '</span><span class="body"><span class="title">' + esc(i.title) + '</span><span class="desc">Run it (Tier 2 — reply in-app within ~75s, else bot chat), or dismiss it (dismiss hides it on this device only).</span></span></div>' +
         '<div class="post-actions"><button class="discuss" data-idea="' + esc(i.title) + '">' + ICON.play + ' Run this idea</button>' +
         '<button data-idea-dismiss="' + esc(i.id) + '">' + ICON.x + ' Dismiss</button></div>';
     }).join("") : '<p class="empty">No saved ideas shown.</p>') +
+    (untitledCount ? '<p class="sub">' + plural(untitledCount, "more saved idea", "more saved ideas") + ' whose titles aren\'t in the snapshot — /ideas still shows them in Muse.</p>' : "") +
     (hiddenCount ? '<p class="idea-dismissed">' + plural(hiddenCount, "idea", "ideas") + ' hidden on this device. <button id="ideasUndoBtn">Undo</button> — /ideas still shows them in Muse.</p>' : "");
     // Goals — tapping one opens its activity timeline below the list.
     var goals = (cacheData.goals && cacheData.goals.items) || [];
@@ -568,7 +605,7 @@
       '<div class="row"><span class="icon">' + ICON.shield + '</span><span class="body"><span class="title">Permissions</span><span class="desc">Approvals are answered in the Muse app only — Telegram cannot approve or deny. /settings gives the exact path.</span></span></div>' +
       '<div class="row"><span class="icon">' + ICON.user + '</span><span class="body"><span class="title">Soul &amp; Memory</span><span class="desc">How Muse talks and what it remembers — they live in the Muse app. Use “Open in Muse” below.</span></span></div>' +
       '<div class="row"><span class="icon">' + ICON.database + '</span><span class="body"><span class="title">Your data in this app</span><span class="desc">This chat thread is saved on this device (Telegram CloudStorage, local storage as fallback) — the last 50 messages. Feed likes, dismissed ideas, reactions and recent searches are device-only, never sent to Muse. “Clear chat” in the drawer deletes the saved thread in this app only — nothing is deleted in Muse or the bot chat.</span></span></div>' +
-      '<div class="row"><span class="icon">' + ICON.info + '</span><span class="body"><span class="title">Muse Telegram App v4.18</span><span class="desc">Dynamic app (frontend + backend) — the bot chat is backup only. Cached answers ~1s, live Muse ~10-20s, in-app replies up to ~75s.</span></span></div>';
+      '<div class="row"><span class="icon">' + ICON.info + '</span><span class="body"><span class="title">Muse Telegram App v4.19.1</span><span class="desc">Dynamic app (frontend + backend) — the bot chat is backup only. Cached answers ~1s, live Muse ~10-20s, in-app replies up to ~75s.</span></span></div>';
     // Connectors view
     $("connectorsCache").textContent = cacheLabel();
     $("connectorsList").innerHTML = conn.length ? conn.map(function (c) {
@@ -895,10 +932,7 @@
       ((cacheData.goals && cacheData.goals.items) || []).forEach(function (g) {
         items.push({ group: "Goals", label: g.title, desc: "Goal — " + (g.status || "") + TIER2_SUFFIX, kind: "goal", val: g.title });
       });
-      var ideaTitles = {
-        "idea_299b6569f1234467bd006eb25a6ad059": "Set your defaults from Telegram",
-        "idea_18894899f1ff4b2ca60528696dfc7654": "Host your Telegram app on your AWS credits"
-      };
+      var ideaTitles = ideaTitlesMap(); // v4.19: parsed from the note, known fallback
       ((cacheData.ideas && cacheData.ideas.saved) || []).forEach(function (id) {
         if (ideaTitles[id]) items.push({ group: "Ideas", label: ideaTitles[id], desc: "Saved idea — tap to open in chat." + TIER2_SUFFIX, kind: "idea", val: ideaTitles[id] });
       });
@@ -1059,16 +1093,17 @@
       if (tierHtml) setTierBar(tierHtml);
     }
     function tier2Buttons() {
-      return '<button class="open-muse-btn" id="openMuseBtn">Open in Muse — instant, live chat</button> ' +
-        '<button class="ghost-btn" id="sendBotBtn">Send via Telegram bot instead (slow, ~10-20s)</button>';
+      // v4.19.1: the "Open in Muse" filled button used to sit here in the
+      // tier bar and blocked the chat view — it now lives ONLY in Settings.
+      // The only in-chat button left is the tap-gated bot fallback.
+      return '<button class="ghost-btn" id="sendBotBtn">Send via Telegram bot instead (slow, ~10-20s)</button>';
     }
     function wireTier2Buttons() {
-      var om = $("openMuseBtn"); if (om) om.addEventListener("click", function () { openInMuse(text); });
       var sb = $("sendBotBtn"); if (sb) sb.addEventListener("click", function () { sendViaBot(text); });
     }
     function botChatNotice() {
       return "This needs your live Muse. The reply lands in the bot chat in ~10-20s — Muse has to wake up first. " +
-        "Or open Muse now for an instant live chat (your message is copied, paste it there).";
+        "Or open Muse from Settings for an instant live chat.";
     }
     if (es) {
       es.onmessage = function (ev) {
@@ -1138,7 +1173,7 @@
       }).catch(function (err) {
         showBackendError(true);
         finish("Couldn't reach the app backend (" + err.message + "). " +
-          "Your message wasn't sent anywhere. You can still open Muse for a live chat, or send it via the bot.",
+          "Your message wasn't sent anywhere. You can still open Muse from Settings for a live chat, or send it via the bot.",
           "Backend unreachable",
           tier2Buttons());
         wireTier2Buttons();
@@ -1163,11 +1198,12 @@
       threadMsgs.forEach(function (m) { addBubble(m.text, m.who, m.tag || "", { record: false, reaction: m.reaction || "", ts: m.ts || Date.now() }); });
       setStatus("Thread restored — pick up where you left off", false);
     } else {
-      addBubble(GREETING, "muse", "Muse Telegram App v4.18 — dynamic app, bot is backup only");
+      addBubble(GREETING, "muse", "Muse Telegram App v4.19.1 — dynamic app, bot is backup only");
     }
   });
-  setTierBar('<span class="tier-text">Cached answers ~1s · live Muse ~10-20s, in-app up to ~75s, otherwise in bot chat</span><button class="open-muse-btn" id="bootMuseBtn">Open in Muse — instant, live chat</button>');
-  var bm = $("bootMuseBtn"); if (bm) bm.addEventListener("click", function () { openInMuse(""); });
+  // v4.19.1: no "Open in Muse" button in the chat — it blocked the view.
+  // It lives ONLY in Settings now; the tier bar carries the latency text.
+  setTierBar('<span class="tier-text">Cached answers ~1s · live Muse ~10-20s, in-app up to ~75s, otherwise in bot chat</span>');
   $("backendRetryBtn").addEventListener("click", function () { showBackendError(false); loadCache(); });
 
   renderSkeletons();

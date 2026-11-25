@@ -106,7 +106,7 @@ FRONTEND_DIR = HERE.parent / "frontend"
 CACHE_FILE = HERE / "cache.json"
 QUEUE_FILE = HERE / "queue.jsonl"
 REPLIES_FILE = HERE / "replies.jsonl"
-VERSION = "4.18.0"
+VERSION = "4.19.1"
 
 REVIEW_MAX_AGE_S = 15 * 60
 OTHER_MAX_AGE_S = 60 * 60
@@ -119,13 +119,39 @@ FAST_COMMANDS = ["help", "spaces", "review", "feed", "goals", "defaults",
                  "activity", "upcoming", "tasks", "notes", "library",
                  "ideas", "wallet", "connectors"]
 
-# Saved-idea titles. The cache stores only idea ids; the titles below
-# are the verified titles recorded in TELEGRAM_COMMANDS.md for those
-# exact ids — never invent a title for an id not listed here.
-IDEA_TITLES = {
+# v4.19: idea titles come from the cache note, not a hardcoded list.
+# The cache stores only idea ids in "saved", but the worker-written
+# "note" carries the titles in prose ("Saved ideas exist, e.g.
+# idea_<32 hex> <title>, idea_<32 hex> <title>."). Parse them out of
+# the note at reply time, so a newly saved idea whose title lands in
+# the note shows up without a code change. The map below is only the
+# fallback for ids the note does not name — never invent a title for
+# an id listed in neither. Same parse as the frontend's
+# parseIdeaTitles() — keep them in sync. Render time only; the
+# snapshot itself is never edited.
+KNOWN_IDEA_TITLES = {
     "idea_299b6569f1234467bd006eb25a6ad059": "Set your defaults from Telegram",
     "idea_18894899f1ff4b2ca60528696dfc7654": "Host your Telegram app on your AWS credits",
 }
+
+
+def parse_idea_titles(note):
+    """Titles from the ideas cache note: idea_<32 hex> <title>, …
+
+    Titles contain no commas in the note format, so each title runs
+    to the next ", idea_" or the end; a trailing full stop is prose
+    punctuation, not part of the title."""
+    out = {}
+    for m in re.finditer(r"idea_([0-9a-f]{32})\s+([^,]+)", str(note or "")):
+        out["idea_" + m.group(1)] = m.group(2).strip().rstrip(".").strip()
+    return {k: v for k, v in out.items() if v}
+
+
+def idea_titles(cache):
+    """id -> title for saved ideas: note-parsed first, known fallback."""
+    titles = dict(KNOWN_IDEA_TITLES)
+    titles.update(parse_idea_titles((cache.get("ideas") or {}).get("note", "")))
+    return titles
 
 HELP_TEXT = """Commands:
 - /help - this list
@@ -848,7 +874,8 @@ def reply_for(text, cache):
         return {"tier": 1, "reply": base + note if note else base, "cached": True}
     if t in ("/ideas", "ideas"):
         saved = cache.get("ideas", {}).get("saved", [])
-        known = [IDEA_TITLES[i] for i in saved if i in IDEA_TITLES]
+        titles = idea_titles(cache)
+        known = [titles[i] for i in saved if i in titles]
         unknown = len(saved) - len(known)
         if known:
             base = "Saved ideas (cached snapshot):\n- " + "\n- ".join(known)
