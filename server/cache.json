@@ -1,0 +1,103 @@
+{
+  "cache_updated_utc": "2026-11-25T01:17:53.369946Z",
+  "connected_services": [
+    "github",
+    "gmail",
+    "google_contacts",
+    "google_docs",
+    "google_forms",
+    "google_sheets",
+    "google_slides",
+    "google_tasks",
+    "instagram_messages",
+    "meta_ads",
+    "notion",
+    "telegram"
+  ],
+  "defaults": {},
+  "feed": {
+    "count": 12,
+    "latest_titles": [
+      "Telegram now lets you bring your own AI agent",
+      "AWS releases Strands Decider v2, open decision models built on Gemma 4",
+      "Issue statuses and repository boards in public preview",
+      "Your feed isn't quite ready yet",
+      "Edit the prompt to control what appears here"
+    ],
+    "note": "12 units 2026-11-24: 9 Getting-started intro posts from 2026-11-23 + 3 generated posts from 2026-11-24."
+  },
+  "goals": {
+    "count": 1,
+    "items": [
+      {
+        "goal_id": "goal_b74506dfa7b2",
+        "status": "active",
+        "title": "Iran internet blackout emergency setup"
+      }
+    ]
+  },
+  "ideas": {
+    "actioned": [],
+    "note": "Saved ideas exist, e.g. idea_299b6569f1234467bd006eb25a6ad059 Set your defaults from Telegram, idea_18894899f1ff4b2ca60528696dfc7654 Host your Telegram app on your AWS credits.",
+    "saved": [
+      "idea_299b6569f1234467bd006eb25a6ad059",
+      "idea_18894899f1ff4b2ca60528696dfc7654"
+    ]
+  },
+  "library": {
+    "files": [],
+    "note": "No files in workspace/your_files yet (only muse-telegram-app folder under goals)."
+  },
+  "not_connected": [
+    "google_calendar",
+    "google_drive",
+    "expedia",
+    "shop-pay",
+    "stripe-link"
+  ],
+  "notes": {
+    "count": 0,
+    "note": "Telegram Notes (fullstack) verified live 2026-11-24 via runcommand /notes: empty."
+  },
+  "pending_approvals": {
+    "count": 0,
+    "items": []
+  },
+  "recent_decided_approvals": [
+    {
+      "decision": "Allowed",
+      "requested_at": "2026-11-24T16:46:00Z"
+    }
+  ],
+  "spaces": [
+    {
+      "name": "Telegram Hub",
+      "placement": "sidebar",
+      "slug": "telegram-hub"
+    },
+    {
+      "name": "Muse Telegram App",
+      "placement": "sidebar",
+      "slug": "muse-telegram-app"
+    },
+    {
+      "name": "Telegram Notes",
+      "placement": "sidebar",
+      "slug": "telegram-notes"
+    }
+  ],
+  "tasks": {
+    "count": 0,
+    "note": "Google Tasks connected, list 'My Tasks' empty 2026-11-24 17:00 UTC; insert/patch/delete write path verified live with a test task, cleaned up."
+  },
+  "tracked": [
+    {
+      "goal_id": "goal_e6f669d6488b",
+      "state": "Menu button is live for John's chat (\"Muse App\" \u2192 GitHub Pages app); next is Increment 2+3 full features from Telegram.",
+      "title": "Telegram bot for Muse"
+    }
+  ],
+  "wallet": {
+    "note": "Shop Pay not_connected, Stripe Link not_connected, PayPal not supported for this account (verified 2026-11-24). No saved cards."
+  }
+}

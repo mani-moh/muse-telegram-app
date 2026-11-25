@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Muse — Telegram App</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+<header>
+  <button id="menuBtn" aria-label="Menu"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div>
+    <button class="avatar" id="avatarBtn" aria-label="Muse status">
+      <span class="face"><svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="36" rx="24" ry="22" fill="#fff8e7"/><ellipse cx="32" cy="36" rx="24" ry="22" fill="none" stroke="#e8d9b0" stroke-width="2"/><circle cx="23" cy="32" r="3.5" fill="#2b2b2b"/><circle cx="41" cy="32" r="3.5" fill="#2b2b2b"/><path d="M26 42 q6 5 12 0" fill="none" stroke="#2b2b2b" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="14" cy="52" rx="6" ry="4" fill="#fff8e7" stroke="#e8d9b0" stroke-width="2"/><ellipse cx="50" cy="52" rx="6" ry="4" fill="#fff8e7" stroke="#e8d9b0" stroke-width="2"/></svg></span>
+      <span class="name-pill">Muse</span>
+    </button>
+    <p id="statusLine">Tap the avatar for activity &amp; approvals</p>
+  </div>
+</header>
+
+<main>
+  <!-- CHAT -->
+  <section class="view active" id="view-chat">
+    <div id="reviewBanner"><span id="reviewBannerText">One task needs review</span><button id="reviewBannerBtn">Review</button></div>
+    <div id="backendBanner"><span>Couldn't reach the app backend — cached answers may be out of date. Your messages aren't sent anywhere until it reconnects.</span><button id="backendRetryBtn">Retry</button></div>
+    <div class="divider" id="dateDivider">Today</div>
+    <div id="thread"></div>
+  </section>
+
+  <!-- FEED -->
+  <section class="view" id="view-feed">
+    <h1>Feed</h1>
+    <p class="sub">Latest posts. Tap Discuss to talk about one in chat.</p>
+    <p class="cache-note" id="feedCache"></p>
+    <h2 id="feedDateHeading" class="date-heading">Latest</h2>
+    <div id="feedList"></div>
+    <button class="row" id="feedPostBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span><span class="body"><span class="title">Write a Feed post</span><span class="desc">Prefills /feedpost — write it in chat, Muse posts it (Tier 2).</span></span></button>
+    <h2>Feed instructions</h2>
+    <p class="sub">Steering the Feed needs live Muse — the sheet below drafts /feedsteer for you.</p>
+    <button class="row" id="feedSteerBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></span><span class="body"><span class="title">Steer what the Feed covers</span><span class="desc">Opens the Feed instructions sheet — Save prefills /feedsteer in chat (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="feedLiveBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="9" x2="10" y2="9"/><line x1="6" y1="13" x2="14" y2="13"/><line x1="6" y1="17" x2="12" y2="17"/></svg></span><span class="body"><span class="title">Check the Feed</span><span class="desc">Prefills /feed (Tier 1, cached ~1s) — the latest cached list; the full fresh list needs live Muse.</span></span></button>
+  </section>
+
+  <!-- IDEAS -->
+  <section class="view" id="view-ideas">
+    <h1>Ideas</h1>
+    <p class="sub">Suggestions for you. Only saved ideas are shown — nothing invented.</p>
+    <p class="cache-note" id="ideasCache"></p>
+    <h2>Saved ideas</h2>
+    <div id="ideasList"></div>
+    <button class="row" id="ideasMoreBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></span><span class="body"><span class="title">More ideas</span><span class="desc">Prefills /ideas (Tier 1, cached ~1s) — your saved ideas from the snapshot. Fresh suggestions need live Muse — ask in chat.</span></span></button>
+  </section>
+
+  <!-- GOALS -->
+  <section class="view" id="view-goals">
+    <h1>Goals</h1>
+    <p class="sub">What you're tracking. Tap one for its activity timeline.</p>
+    <p class="cache-note" id="goalsCache"></p>
+    <div id="goalsList"></div>
+    <div id="goalDetail"></div>
+    <button class="row" id="newGoalBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="body"><span class="title">Create a goal</span><span class="desc">Prefills /newgoal — describe it in chat (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <h2>Create a goal — pick a category</h2>
+    <p class="sub">The real app offers 7 categories. Tap one to start a goal in that category.</p>
+    <div id="goalCats"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings">
+    <h1>Settings</h1>
+    <p class="sub">What this app can show you from the cached snapshot — and what only the real Muse app can do.</p>
+    <p class="cache-note" id="settingsCache"></p>
+    <div id="settingsList"></div>
+    <button class="row" id="settingsLiveBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span><span class="body"><span class="title">Settings &amp; permissions guide</span><span class="desc">Prefills /settings — the exact path in the Muse app (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="settingsOpenMuseBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span><span class="body"><span class="title">Open in Muse</span><span class="desc">Soul, Memory, permissions and subscription live there — instant, live chat.</span></span></button>
+  </section>
+
+  <!-- CONNECTORS -->
+  <section class="view" id="view-connectors">
+    <h1>Connectors</h1>
+    <p class="sub">Services Muse can use — from the cached snapshot. Tap a service that isn't connected for its connect steps.</p>
+    <p class="cache-note" id="connectorsCache"></p>
+    <h2>Connected</h2>
+    <div id="connectorsList"></div>
+    <h2>Not connected</h2>
+    <div id="connectorsNotList"></div>
+    <button class="row" id="connectorsLiveBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="body"><span class="title">Check connectors</span><span class="desc">Prefills /connectors (Tier 1, cached ~1s) — or /connect &lt;service&gt; for steps.</span></span></button>
+  </section>
+
+  <!-- WALLET -->
+  <section class="view" id="view-wallet">
+    <h1>Wallet</h1>
+    <p class="sub">Your wallets and saved cards — from the cached snapshot. No tool pays from Telegram.</p>
+    <p class="cache-note" id="walletCache"></p>
+    <div id="walletList"></div>
+    <button class="row" id="walletLiveBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span class="body"><span class="title">Check wallet status</span><span class="desc">Prefills /wallet (Tier 1, cached ~1s).</span></span></button>
+  </section>
+
+  <!-- LIBRARY -->
+  <section class="view" id="view-library">
+    <h1>Library</h1>
+    <div class="seg" id="libSeg">
+      <button class="active" data-lib="artifacts">Artifacts</button>
+      <button data-lib="media">Media</button>
+    </div>
+    <p class="cache-note" id="libraryCache"></p>
+    <div id="libraryList"></div>
+    <button class="row" id="libCreateBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="body"><span class="title">Create a document</span><span class="desc">Prefills /doc — Muse creates it (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="libSheetBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></span><span class="body"><span class="title">Create a spreadsheet</span><span class="desc">Prefills /sheet — Muse creates it (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="libSlidesBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></span><span class="body"><span class="title">Create slides</span><span class="desc">Prefills /slides — Muse creates them (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <p class="sub" id="libFootNote">Library files live in Muse, not in Telegram — new creations appear here only after the cache refreshes. The list above is the cached snapshot, nothing more.</p>
+  </section>
+
+  <!-- UPCOMING -->
+  <section class="view" id="view-upcoming">
+    <h1>Upcoming</h1>
+    <p class="sub">Scheduled tasks and what you're tracking — from the cached snapshot. Next run times need live Muse.</p>
+    <p class="cache-note" id="upcomingCache"></p>
+    <div id="upcomingList"></div>
+    <button class="row" id="upAddTaskBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="body"><span class="title">Add a task</span><span class="desc">Prefills /addtask — text, then an optional due date (write it year-month-day, e.g. 2026-11-25) (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="upBookBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="body"><span class="title">Book an event</span><span class="desc">Prefills /book — title, date, time (Tier 2 — reply in-app within ~75s, else bot chat). Works once Google Calendar is connected.</span></span></button>
+    <button class="row" id="upcomingLiveBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="body"><span class="title">Check upcoming</span><span class="desc">Prefills /upcoming (Tier 1, cached ~1s) — the snapshot list; next run times need live Muse.</span></span></button>
+  </section>
+
+  <!-- ACTIVITY -->
+  <section class="view" id="view-activity">
+    <h1>Activity</h1>
+    <p class="sub">What Muse just did — recent decided approvals from the cached snapshot. The full log needs live Muse.</p>
+    <p class="cache-note" id="activityCache"></p>
+    <div id="activityList"></div>
+    <button class="row" id="activityLiveBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="body"><span class="title">Check activity</span><span class="desc">Prefills /activity (Tier 1, cached ~1s) — the snapshot log; the full log needs live Muse.</span></span></button>
+  </section>
+
+  <!-- NOTES -->
+  <section class="view" id="view-notes">
+    <h1>Notes</h1>
+    <p class="sub">Telegram Notes — from the cached snapshot. Listing is cached (~1s); adding a note needs live Muse.</p>
+    <p class="cache-note" id="notesCache"></p>
+    <div id="notesList"></div>
+    <button class="row" id="notesAddBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span><span class="body"><span class="title">Add a note</span><span class="desc">Prefills /note — send it and Muse saves it to Telegram Notes (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="notesListBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="body"><span class="title">List my notes</span><span class="desc">Prefills /notes (Tier 1, cached ~1s) — newest first, with numbers for pin/done/delete.</span></span></button>
+    <h2>Manage notes</h2>
+    <button class="row" id="notesSearchBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span><span class="body"><span class="title">Search my notes</span><span class="desc">Prefills /search — then type what to find (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="notesPinBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span><span class="body"><span class="title">Pin a note</span><span class="desc">Prefills /pin — add the note number from /notes (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="notesDoneBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><span class="body"><span class="title">Mark a note done</span><span class="desc">Prefills /done — add the note number from /notes (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="notesDeleteBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span><span class="body"><span class="title">Delete a note</span><span class="desc">Prefills /delete — add the note number (Tier 2 — reply in-app within ~75s, else bot chat). Deleting is permanent.</span></span></button>
+  </section>
+
+  <!-- TASKS -->
+  <section class="view" id="view-tasks">
+    <h1>Tasks</h1>
+    <p class="sub">Google Tasks — from the cached snapshot. Listing is cached (~1s); adding, completing and checking a task needs live Muse.</p>
+    <p class="cache-note" id="tasksCache"></p>
+    <div id="tasksList"></div>
+    <button class="row" id="tasksListBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="body"><span class="title">List my tasks</span><span class="desc">Prefills /tasks (Tier 1, cached ~1s) — the snapshot list, with titles for /donetask and /task.</span></span></button>
+    <button class="row" id="tasksAddBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="body"><span class="title">Add a task</span><span class="desc">Prefills /addtask — text, then an optional due date (write it year-month-day, e.g. 2026-11-25) (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="tasksDoneBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span><span class="body"><span class="title">Complete a task</span><span class="desc">Prefills /donetask — add the task title or id from /tasks (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="tasksDetailBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span><span class="body"><span class="title">One task in detail</span><span class="desc">Prefills /task — add the task title or id from /tasks (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+  </section>
+
+  <!-- EMAIL -->
+  <section class="view" id="view-email">
+    <h1>Email</h1>
+    <p class="sub">Email needs live Muse — nothing about your inbox is in the cached snapshot.</p>
+    <button class="row" id="emailCheckBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg></span><span class="body"><span class="title">Check email</span><span class="desc">Prefills /email — Muse reads your unread mail and triages what needs you (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="emailDraftBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span><span class="body"><span class="title">Draft an email</span><span class="desc">Prefills /draft — to, subject, then what to say; Muse saves a real Gmail draft, nothing is sent (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="emailSendBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span><span class="body"><span class="title">Send an email</span><span class="desc">Prefills /send — to, subject, then what to say; needs your explicit go-ahead and an approval card in the Muse app (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="view" id="view-calendar">
+    <h1>Calendar</h1>
+    <p class="sub">Calendar needs live Muse — nothing about your events is in the cached snapshot.</p>
+    <button class="row" id="calCheckBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="body"><span class="title">Check my calendar</span><span class="desc">Prefills /calendar — today and tomorrow, plus free time (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+    <button class="row" id="calBookBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="body"><span class="title">Book an event</span><span class="desc">Prefills /book — title, date, time (Tier 2 — reply in-app within ~75s, else bot chat). Works once Google Calendar is connected.</span></span></button>
+  </section>
+
+  <!-- SEARCH -->
+  <section class="view" id="view-search">
+    <h1>Search</h1>
+    <p class="sub">One search across commands, Feed posts, Spaces, goals and ideas. Tap a result to open it.</p>
+    <div id="searchBar"><input id="searchInput" type="search" placeholder="Search commands…" autocomplete="off"><button id="searchFindBtn">Find</button></div>
+    <div id="searchResults"></div>
+  </section>
+</main>
+
+<!-- Drawer -->
+<div id="scrim"></div>
+<nav id="drawer" aria-label="Menu">
+  <h1 style="margin-top:0">Muse</h1>
+  <h2>Tabs</h2>
+  <div id="drawerTabs"></div>
+  <h2>Muse</h2>
+  <button class="row" id="drawerActivityBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span><span class="body"><span class="title">Activity</span><span class="desc">What Muse just did (Tier 1, cached ~1s) — the snapshot log; the full log needs live Muse.</span></span></button>
+  <button class="row" id="drawerUpcomingBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="body"><span class="title">Upcoming</span><span class="desc">Scheduled tasks and next runs (Tier 1, cached ~1s) — from the cached snapshot.</span></span></button>
+  <button class="row" id="drawerTasksBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="body"><span class="title">Tasks</span><span class="desc">Google Tasks (Tier 1, cached ~1s) — listing is cached; adding and completing needs live Muse.</span></span></button>
+  <button class="row" id="drawerEmailBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg></span><span class="body"><span class="title">Email</span><span class="desc">Your inbox needs live Muse — nothing about it is cached (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+  <button class="row" id="drawerCalendarBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span><span class="body"><span class="title">Calendar</span><span class="desc">Your events need live Muse — nothing about them is cached (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+  <h2>Spaces</h2>
+  <p class="cache-note" id="drawerSpacesCache"></p>
+  <div id="drawerSpaces"></div>
+  <button class="row" id="allSpacesBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span><span class="body"><span class="title">All Spaces</span><span class="desc">Your Spaces from the cached snapshot (Tier 1, cached ~1s).</span></span></button>
+  <button class="row" id="newSpaceBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span><span class="body"><span class="title">Create a space</span><span class="desc">Prefills /newspace — describe it in chat (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+  <h2>Tools</h2>
+  <button class="row" id="drawerConnectorsBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></span><span class="body"><span class="title">Connectors</span><span class="desc">Connected and not-connected services (Tier 1, cached ~1s).</span></span></button>
+  <button class="row" id="drawerWalletBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span><span class="body"><span class="title">Wallet</span><span class="desc">Wallet status (Tier 1, cached ~1s) — no payments from Telegram.</span></span></button>
+  <h2>Notes</h2>
+  <button class="row" id="drawerNotesBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="body"><span class="title">My notes</span><span class="desc">Telegram Notes (Tier 1, cached ~1s) — listing is cached; adding needs live Muse.</span></span></button>
+  <button class="row" id="noteAddBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></span><span class="body"><span class="title">Add a note</span><span class="desc">Prefills /note — send it and Muse saves it to Telegram Notes (Tier 2 — reply in-app within ~75s, else bot chat).</span></span></button>
+  <button class="row" id="noteListBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span><span class="body"><span class="title">List my notes</span><span class="desc">Prefills /notes (Tier 1, cached ~1s) — newest first, with numbers for pin/done/delete.</span></span></button>
+  <h2>Channels</h2>
+  <button class="row" id="whatsappRow"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></span><span class="body"><span class="title">WhatsApp</span><span class="desc">Muse is also on WhatsApp — the only native Muse messaging channel.</span></span></button>
+  <button class="row" id="telegramBotRow"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span><span class="body"><span class="title">Telegram bot chat</span><span class="desc">@Manis_muse_bot — the backup route. Replies land here in ~10-20s when the app can't answer in-app.</span></span></button>
+  <button class="row" id="openMuseRow"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></span><span class="body"><span class="title">Open in Muse</span><span class="desc">Instant, live chat in the real Muse app — leaves Telegram.</span></span></button>
+  <div class="foot">
+    <button id="drawerSearchBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg> Search</button>
+    <button id="drawerSettingsBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> Settings</button>
+  </div>
+  <p class="cache-note">Soul &amp; Memory live in the Muse app, not in Telegram — open Settings above, then “Open in Muse”.</p>
+  <button class="row" id="clearThreadBtn"><span class="icon"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></span><span class="body"><span class="title">Clear chat</span><span class="desc">Deletes the saved thread in this app only — nothing is deleted in Muse or the bot chat.</span></span></button>
+  <p class="cache-note">Settings live in the Muse app, not in Telegram. /settings gives the exact path.</p>
+</nav>
+
+<!-- Avatar panel -->
+<div id="panel" role="dialog" aria-label="Muse status">
+  <button class="close" id="panelClose">✕</button>
+  <div style="text-align:center">
+    <div class="avatar"><span class="face" style="width:84px;height:84px"><svg viewBox="0 0 64 64" aria-hidden="true"><ellipse cx="32" cy="36" rx="24" ry="22" fill="#fff8e7"/><ellipse cx="32" cy="36" rx="24" ry="22" fill="none" stroke="#e8d9b0" stroke-width="2"/><circle cx="23" cy="32" r="3.5" fill="#2b2b2b"/><circle cx="41" cy="32" r="3.5" fill="#2b2b2b"/><path d="M26 42 q6 5 12 0" fill="none" stroke="#2b2b2b" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="14" cy="52" rx="6" ry="4" fill="#fff8e7" stroke="#e8d9b0" stroke-width="2"/><ellipse cx="50" cy="52" rx="6" ry="4" fill="#fff8e7" stroke="#e8d9b0" stroke-width="2"/></svg></span><span class="name-pill">Muse</span></div>
+    <p id="panelStatus">Connected</p>
+  </div>
+  <div class="seg" id="panelSeg">
+    <button class="active" data-panel="activity" title="Activity"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></button>
+    <button data-panel="approvals" title="Approvals"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></button>
+    <button data-panel="upcoming" title="Upcoming"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></button>
+    <button data-panel="identity" title="Soul &amp; Memory"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
+  </div>
+  <div id="panelBody"></div>
+</div>
+
+<!-- Composer + tab bar (always visible) -->
+<div id="composerBar">
+  <div id="chips">
+    <button data-chip="/review">Review</button>
+    <button data-chip="/spaces">Spaces</button>
+    <button data-chip="/notes">Notes</button>
+    <button data-chip="/email">Email</button>
+    <button data-chip="/tasks">Tasks</button>
+  </div>
+  <div id="composer">
+    <div class="pill">
+      <button class="round" id="plusBtn" aria-label="Attach / more">＋</button>
+      <input id="composerInput" type="text" placeholder="Message" autocomplete="off" enterkeyhint="send">
+      <button class="round" id="micBtn" aria-label="Voice (not available in Telegram)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+    </div>
+    <button class="round" id="sendBtn" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></button>
+  </div>
+  <div id="tierBar"></div>
+</div>
+
+<div id="tabScrim" aria-hidden="true"></div>
+<nav id="tabbar" aria-label="Tabs">
+  <button data-tab="chat" class="active" title="Chat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></button>
+  <button data-tab="feed" title="Feed"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="6" y1="9" x2="10" y2="9"/><line x1="6" y1="13" x2="14" y2="13"/><line x1="6" y1="17" x2="12" y2="17"/></svg></button>
+  <button data-tab="ideas" title="Ideas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg></button>
+  <button data-tab="goals" title="Goals"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+  <button data-tab="library" title="Library"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></button>
+</nav>
+
+<!-- Message actions sheet (tap a Muse bubble — like the real app's long-press menu) -->
+<div id="msgBackdrop"></div>
+<div id="msgSheet" role="dialog" aria-label="Message actions">
+  <h2>Message actions</h2>
+  <p class="sheet-sub" id="msgSheetText"></p>
+  <div class="sheet-actions" style="justify-content:flex-start;flex-wrap:wrap">
+    <button id="msgCopyBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/></svg> Copy</button>
+    <button id="msgRetryBtn">↻ Retry</button>
+    <button id="msgReactLikeBtn">👍</button>
+    <button id="msgReactLoveBtn">❤️</button>
+    <button id="msgReactDownBtn">👎</button>
+    <button id="msgCloseBtn">Close</button>
+  </div>
+  <p class="sheet-note">Reactions are saved on this device only — they are not sent to Muse or the bot chat.</p>
+</div>
+
+<!-- Feed post info sheet -->
+<div id="infoBackdrop"></div>
+<div id="infoSheet" role="dialog" aria-label="About this post">
+  <h2 id="infoTitle"></h2>
+  <p class="sheet-sub" id="infoBody"></p>
+  <div class="sheet-actions">
+    <button id="infoDiscussBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg> Discuss</button>
+    <button id="infoCloseBtn">Close</button>
+  </div>
+</div>
+
+<!-- Feed instructions sheet (dark bottom sheet, like the real Muse app) -->
+<div id="sheetBackdrop"></div>
+<div id="feedSheet" role="dialog" aria-label="Feed instructions">
+  <h2>Feed instructions</h2>
+  <p class="sheet-sub">Your feed is powered by the instructions below. Any edits you make to this prompt will apply to future posts on the feed — once live Muse applies them.</p>
+  <textarea id="feedSheetInput" rows="4" placeholder="e.g. I want finance news in the morning, golf updates in the afternoon, and nonfiction book reviews in the evening."></textarea>
+  <p class="sheet-note">Save only drafts /feedsteer in chat — applying it still needs live Muse (Tier 2 — reply in-app within ~75s, else bot chat).</p>
+  <div class="sheet-actions">
+    <button id="feedSheetCancel">Cancel</button>
+    <button id="feedSheetSave">Save</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

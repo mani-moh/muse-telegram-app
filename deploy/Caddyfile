@@ -1,0 +1,38 @@
+# Muse Telegram App v4 — Caddyfile (Soar box, app.mqj.cc.cd)
+#
+# Cloudflare record for app.mqj.cc.cd is PROXIED and the zone SSL mode is
+# Full (strict): Cloudflare validates the origin certificate, so the origin
+# must serve a valid cert for app.mqj.cc.cd. This file uses a Cloudflare
+# Origin Certificate (free, 15-year, trusted only by Cloudflare — fine,
+# because all traffic arrives through Cloudflare). See DEPLOY.md §3.
+#
+#   /etc/caddy/certs/app.mqj.cc.cd.pem  — origin certificate (mode 600)
+#   /etc/caddy/certs/app.mqj.cc.cd.key  — origin private key (mode 600)
+#
+# FALLBACK (only if the Origin Certificate cannot be made): switch the app
+# record in Cloudflare from Proxied to DNS-only, then delete the `tls ...`
+# line below and let Caddy fetch a Let's Encrypt certificate automatically.
+# That exposes the origin IP and loses Cloudflare's proxy shield — prefer
+# the Origin Certificate route.
+
+app.mqj.cc.cd {
+	tls /etc/caddy/certs/app.mqj.cc.cd.pem /etc/caddy/certs/app.mqj.cc.cd.key
+
+	# Security headers — the app is a Telegram Mini App, nothing else.
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy no-referrer
+		# Allow Telegram's WebApp script; nothing else external is loaded.
+		Content-Security-Policy "default-src 'self'; script-src 'self' https://telegram.org; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'"
+	}
+
+	# App backend on localhost only.
+	reverse_proxy 127.0.0.1:8765
+
+	# Access log (keep small; the box has 1 GiB RAM and a small disk).
+	log {
+		output file /var/log/caddy/muse-telegram-app.log
+		format json
+	}
+}

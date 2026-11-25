@@ -1,0 +1,57 @@
+# Muse Telegram App v4 — systemd unit (for the Soar box, app.mqj.cc.cd)
+#
+# Install (on the Soar box, after John's approval — NOT installed here):
+#   sudo cp muse-telegram-app.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now muse-telegram-app
+#
+# TOKEN: the bot token is NEVER in this file. Provide it via an
+# EnvironmentFile that only root can read, e.g.:
+#   sudo install -m 600 /dev/null /etc/muse-telegram-app.env
+#   # then edit that file to contain ONE line:
+#   #   TELEGRAM_BOT_TOKEN=<token>
+#   # (On AWS the preferred home is Secrets Manager; see DEPLOY.md §6.)
+# CACHE SYNC (v4.1): the same env file can also carry the bridge config:
+#   CACHE_SYNC_URL=https://raw.githubusercontent.com/mani-moh/muse-telegram-cache/main/cache.json
+#   CACHE_SYNC_INTERVAL_S=60
+#   CACHE_SYNC_HMAC_SECRET=<shared secret>   # only if the refresher signs (recommended)
+#   CACHE_SYNC_TOKEN=<read token>            # only if the sync repo is private
+# The repo mani-moh/muse-telegram-cache must already exist (private,
+# created by John) — the refresher (server/refresh_cache.py) pushes to
+# it; this server only polls it. Until the bridge is live, the backend
+# serves its local seed and labels Tier 1 answers with the check time.
+# If the EnvironmentFile is missing, the server still starts but runs
+# UNVERIFIED (initData not validated) — check the logs for the warning.
+# Do not run production that way.
+#
+# PORT: the app listens on 127.0.0.1:8765 only. Caddy in front of it
+# serves HTTPS on 443. Do not expose port 8765 directly.
+#
+# SOAR BOX: this is the blackout lifeline (Soar DNS on 53, panel on 2053,
+# arvan-relay every 15 min). The limits below exist so the app can never
+# starve it: 256 MB RAM, half a CPU. The app must never touch port 53,
+# the panel, the relay, or /home/ubuntu/.config/arvan-relay/env.
+
+[Unit]
+Description=Muse Telegram App v4 backend (frontend + API)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/muse-telegram-app/server
+EnvironmentFile=-/etc/muse-telegram-app.env
+ExecStart=/usr/bin/python3 /opt/muse-telegram-app/server/server.py --host 127.0.0.1 --port 8765
+Restart=always
+RestartSec=10
+# Resource limits — the Soar box has 1 GiB total and runs the blackout
+# lifeline. The app must never be able to starve it.
+MemoryMax=256M
+CPUQuota=50%
+# Hardening: no new privileges, private /tmp.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

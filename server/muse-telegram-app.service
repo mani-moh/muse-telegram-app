@@ -1,0 +1,44 @@
+# Muse Telegram App v4 — systemd unit (for Lightsail / EC2 deployment)
+#
+# Install (on the host, after John's approval — NOT installed here):
+#   sudo cp muse-telegram-app.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now muse-telegram-app
+#
+# TOKEN: the bot token is NEVER in this file. Provide it via an
+# EnvironmentFile that only root can read, e.g.:
+#   sudo install -m 600 /dev/null /etc/muse-telegram-app.env
+#   # then edit that file to contain ONE line:
+#   #   TELEGRAM_BOT_TOKEN=<token>
+#   # (On AWS the preferred home is Secrets Manager; see README.md.)
+# If the EnvironmentFile is missing, the server still starts but runs
+# UNVERIFIED (initData not validated) — check the logs for the warning.
+#
+# PORT: the app listens on 127.0.0.1:8765 only. Put Caddy or nginx in
+# front of it for HTTPS on 443 (Let's Encrypt) — Telegram Mini Apps
+# require HTTPS. Do not expose port 8765 directly.
+
+[Unit]
+Description=Muse Telegram App v4 backend (frontend + API)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/opt/muse-telegram-app/server
+EnvironmentFile=-/etc/muse-telegram-app.env
+ExecStart=/usr/bin/python3 /opt/muse-telegram-app/server/server.py --host 127.0.0.1 --port 8765
+Restart=always
+RestartSec=10
+# Resource limits — the Soar box has 1 GiB total and runs the blackout
+# lifeline (Soar DNS on 53, panel on 2053, arvan-relay every 15 min).
+# The app must never be able to starve it: 256 MB RAM, half a CPU.
+MemoryMax=256M
+CPUQuota=50%
+# Hardening: no new privileges, private /tmp.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

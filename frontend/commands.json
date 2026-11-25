@@ -1,0 +1,242 @@
+[
+  {
+    "cmd": "/help",
+    "desc": "This list — all 48 commands",
+    "tier": 1
+  },
+  {
+    "cmd": "/review",
+    "desc": "Pending approvals and recent actions",
+    "tier": 1
+  },
+  {
+    "cmd": "/spaces",
+    "desc": "List your Spaces",
+    "tier": 1
+  },
+  {
+    "cmd": "/space <name>",
+    "desc": "Open one Space",
+    "tier": 2
+  },
+  {
+    "cmd": "/newspace <description>",
+    "desc": "Build a new Space",
+    "tier": 2
+  },
+  {
+    "cmd": "/share <name>",
+    "desc": "Share a Space publicly (only when you ask)",
+    "tier": 2
+  },
+  {
+    "cmd": "/feed",
+    "desc": "Latest Feed posts",
+    "tier": 1
+  },
+  {
+    "cmd": "/feedpost <text>",
+    "desc": "Write a Feed post now",
+    "tier": 2
+  },
+  {
+    "cmd": "/feedsteer <instruction>",
+    "desc": "Steer what the Feed covers",
+    "tier": 2
+  },
+  {
+    "cmd": "/goals",
+    "desc": "Your goals",
+    "tier": 1
+  },
+  {
+    "cmd": "/newgoal <title>",
+    "desc": "Start a new goal",
+    "tier": 2
+  },
+  {
+    "cmd": "/goal <name>",
+    "desc": "One goal in detail",
+    "tier": 2
+  },
+  {
+    "cmd": "/loggoal <name> <progress>",
+    "desc": "Log progress on a goal",
+    "tier": 2
+  },
+  {
+    "cmd": "/ideas",
+    "desc": "Ideas for you",
+    "tier": 1
+  },
+  {
+    "cmd": "/idea <topic>",
+    "desc": "One idea in full, then build it",
+    "tier": 2
+  },
+  {
+    "cmd": "/library",
+    "desc": "Your files and documents",
+    "tier": 1
+  },
+  {
+    "cmd": "/doc <title> <content>",
+    "desc": "Make a document",
+    "tier": 2
+  },
+  {
+    "cmd": "/sheet <title>",
+    "desc": "Make a spreadsheet",
+    "tier": 2
+  },
+  {
+    "cmd": "/slides <title>",
+    "desc": "Make a presentation",
+    "tier": 2
+  },
+  {
+    "cmd": "/connectors",
+    "desc": "Services you can connect",
+    "tier": 1
+  },
+  {
+    "cmd": "/connect <service>",
+    "desc": "How to connect a service",
+    "tier": 2
+  },
+  {
+    "cmd": "/default <category> <service>",
+    "desc": "Set your default for a category",
+    "tier": 2
+  },
+  {
+    "cmd": "/defaults",
+    "desc": "Your current defaults",
+    "tier": 1
+  },
+  {
+    "cmd": "/activity",
+    "desc": "What Muse just did",
+    "tier": 1
+  },
+  {
+    "cmd": "/upcoming",
+    "desc": "Your scheduled tasks and next runs",
+    "tier": 1
+  },
+  {
+    "cmd": "/tasks",
+    "desc": "Tasks due today and this week",
+    "tier": 1
+  },
+  {
+    "cmd": "/addtask <text> [due YYYY-MM-DD]",
+    "desc": "Add a task",
+    "tier": 2
+  },
+  {
+    "cmd": "/donetask <id or title>",
+    "desc": "Complete a task",
+    "tier": 2
+  },
+  {
+    "cmd": "/task <id or title>",
+    "desc": "One task in detail",
+    "tier": 2
+  },
+  {
+    "cmd": "/calendar",
+    "desc": "Today and tomorrow, and free time",
+    "tier": 2
+  },
+  {
+    "cmd": "/book <title> <date> <time> [guests]",
+    "desc": "Book a calendar event",
+    "tier": 2
+  },
+  {
+    "cmd": "/email",
+    "desc": "Unread mail that needs you, triaged",
+    "tier": 2
+  },
+  {
+    "cmd": "/draft <to> <subject> <body>",
+    "desc": "Save a real Gmail draft",
+    "tier": 2
+  },
+  {
+    "cmd": "/send <to> <subject> <body>",
+    "desc": "Send, only with your explicit go-ahead",
+    "tier": 2
+  },
+  {
+    "cmd": "/wallet",
+    "desc": "Your wallets and saved cards",
+    "tier": 1
+  },
+  {
+    "cmd": "/find <text>",
+    "desc": "Search everywhere: chats, files, notes, Feed",
+    "tier": 2
+  },
+  {
+    "cmd": "/flights <from> <to> <date>",
+    "desc": "Search flights",
+    "tier": 2
+  },
+  {
+    "cmd": "/hotels <place> <dates>",
+    "desc": "Search hotels",
+    "tier": 2
+  },
+  {
+    "cmd": "/trip <description>",
+    "desc": "Plan a trip",
+    "tier": 2
+  },
+  {
+    "cmd": "/settings",
+    "desc": "Your settings and permissions in the app",
+    "tier": 2
+  },
+  {
+    "cmd": "/note <text>",
+    "desc": "Save a note (Telegram Notes)",
+    "tier": 2
+  },
+  {
+    "cmd": "/notes",
+    "desc": "List your notes",
+    "tier": 1
+  },
+  {
+    "cmd": "/search <text>",
+    "desc": "Search your notes",
+    "tier": 2
+  },
+  {
+    "cmd": "/pin <id>",
+    "desc": "Pin a note",
+    "tier": 2
+  },
+  {
+    "cmd": "/unpin <id>",
+    "desc": "Unpin a note",
+    "tier": 2
+  },
+  {
+    "cmd": "/done <id>",
+    "desc": "Mark a note done",
+    "tier": 2
+  },
+  {
+    "cmd": "/reopen <id>",
+    "desc": "Reopen a note",
+    "tier": 2
+  },
+  {
+    "cmd": "/delete <id>",
+    "desc": "Delete a note",
+    "tier": 2
+  }
+]
